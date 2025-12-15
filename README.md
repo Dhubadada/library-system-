@@ -38,7 +38,7 @@ A lightweight, fully functional Library Management System built with **Node.js**
 - **Backend:** Node.js, Express.js.
 - **Database:** Local JSON file storage.
 - Role	Username / ID	Password
-Admin	admin@lms.edu	123
+Admin:-	(admin@lms.edu)	(123)
 ************************************
-Student	233016112	pass123
+Student:- (233016112)	(pass123)
 *********************************************************************************************
