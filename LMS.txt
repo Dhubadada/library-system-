@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Library Management System - Unified Panel</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* -------------------------
+       THEME COLORS (user)
+       ------------------------- */
+    :root{
+      --primary: #4CAF50;        /* Forest Green */
+      --primary-dark: #1E5E20;   /* Deep green / body text */
+      --secondary: #F2F0EA;      /* Ivory / cream background */
+      --accent: #D9880B;         /* Muted orange/brown */
+      --muted-bg: #F9F8F4;
+    }
+
+    /* BASE */
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:'Inter',sans-serif;
+      background-color:var(--secondary);
+      color:var(--primary-dark);
+    }
+    h1,h2,h3{font-family:'Poppins',sans-serif}
+    a{color:inherit}
+
+    /* Replace default Tailwind utility colors for specific inline utilities used in HTML */
+    /* General container adjustments */
+    .rounded-xl{border-radius:14px}
+    .rounded-lg{border-radius:10px}
+
+    /* MESSAGE BOX */
+    #message-box{
+      right:1.25rem;
+      top:1.25rem;
+      transform:translateX(200%);
+      transition:transform .3s ease;
+      z-index:50;
+      padding:.75rem 1rem;
+      border-radius:10px;
+    }
+    #message-box.translate-x-0{ transform: translateX(0); }
+
+    /* CHOOSER VIEW */
+    #chooser-view{
+      background-color:white;
+      border-radius:14px;
+      box-shadow:0 12px 30px rgba(0,0,0,.08);
+    }
+    #chooser-view h1{
+      color:var(--primary);
+    }
+
+    /* BUTTONS - replace teal/blue with primary/accent */
+    .btn-primary, button.bg-primary{
+      background-color:var(--primary);
+      color:white;
+    }
+    .btn-primary:hover, .btn-primary:focus{
+      background-color:var(--primary-dark);
+    }
+    .btn-accent{
+      background-color:var(--accent);
+      color:white;
+    }
+    .btn-accent:hover{opacity:.95}
+
+    /* SIDEBARS */
+    .sidebar{
+      background-color:var(--primary);
+      width:260px; /* slightly wider */
+      padding:1rem;
+    }
+    .sidebar .brand {
+      background:white;
+      color:var(--primary);
+      width:44px;
+      height:44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      border-radius:10px;
+      box-shadow:0 6px 18px rgba(0,0,0,.06);
+    }
+    .sidebar h1{ color:white; }
+    .sidebar-link{
+      color:rgba(255,255,255,.95);
+      padding:.65rem .75rem;
+      display:flex;
+      align-items:center;
+      gap:.75rem;
+      border-radius:10px;
+      transition:all .18s ease;
+      cursor:pointer;
+    }
+    .sidebar-link.active{
+      background-color:var(--primary-dark);
+      color:white;
+      border-left:4px solid var(--accent);
+    }
+    .sidebar-link:hover{ background-color:#43A047; color:white; }
+
+    /* student sidebar variant re-used */
+    .student-sidebar-link{
+      display:flex;
+      align-items:center;
+      gap:.75rem;
+      padding:.65rem .75rem;
+      color:rgba(255,255,255,.95);
+      transition:all .18s ease;
+      cursor:pointer;
+      border-left:4px solid transparent;
+      border-radius:10px;
+    }
+    .student-sidebar-link:hover{ background-color:rgba(255,255,255,.08); color:white; }
+    .student-sidebar-link.active{
+      background-color:var(--secondary);
+      color:var(--primary-dark);
+      border-left-color:var(--accent);
+    }
+
+    /* HEADER */
+    header{ background:white; }
+    header .title{
+      color:var(--primary-dark);
+      font-weight:700;
+    }
+
+    /* CARDS and PANELS */
+    .bg-white{ background:white !important;}
+    .shadow-sm{ box-shadow:0 4px 14px rgba(0,0,0,.04) !important; }
+    .rounded-xl{ border-radius:14px !important; }
+
+    /* Accent borders for stat cards */
+    .card-accent { border-left:4px solid var(--primary); padding:1rem; border-radius:10px; background:white; }
+    .card-accent-orange { border-left:4px solid var(--accent); padding:1rem; background:white; border-radius:10px; }
+
+    /* TH and table */
+    table thead{ background:#efeae0; color:var(--primary-dark); }
+    table tbody tr:hover{ background:#f5f9f3; }
+
+    /* BADGES */
+    .badge-active{ background:#eaf6ea; color:var(--primary-dark); padding:.25rem .5rem; border-radius:999px; font-size:.75rem; }
+    .badge-warning{ background:#fff3e6; color:var(--accent); padding:.25rem .5rem; border-radius:999px; font-size:.75rem; }
+
+    /* MODAL */
+    .modal-overlay{ background-color: rgba(0,0,0,.45); }
+    .modal-card{ background:white; padding:1.25rem; border-radius:12px; box-shadow:0 18px 40px rgba(0,0,0,.12); border-top:6px solid var(--primary); }
+
+    /* INPUTS */
+    input, select, textarea{
+      border:1px solid #cfdccf;
+      background:var(--muted-bg);
+      color:var(--primary-dark);
+      padding:.6rem .8rem;
+      border-radius:8px;
+    }
+    input:focus, select:focus, textarea:focus{ outline:2px solid var(--primary); }
+
+    /* misc small differences to avoid exact match */
+    .rounded-variant { border-radius:12px; }
+    .btn-rounded { border-radius:10px; }
+    .muted-small { color:#6b8a6b; font-size:.9rem; }
+
+    /* make headline text white on forest green for any header containers */
+    .header-on-primary{ background:var(--primary); color:white; padding:.6rem .9rem; border-radius:10px; }
+
+    /* small responsive tweaks */
+    @media (max-width:900px){
+      .sidebar{ width:72px; padding:.6rem; }
+      .sidebar .brand{ width:36px; height:36px; }
+    }
+  </style>
+</head>
+<body class="initial-mode flex justify-center items-center">
+
+  <!-- Message box -->
+  <div id="message-box" class="fixed top-5 right-5 p-4 rounded-lg shadow-xl text-white z-50 transition-transform duration-300 transform translate-x-full"></div>
+
+  <!-- CHOOSER -->
+  <div id="chooser-view" class="w-full max-w-lg p-10 text-center bg-white rounded-xl shadow-2xl space-y-6">
+    <h1 class="text-3xl font-bold" style="color:var(--primary-dark)">Library System Access</h1>
+    <p class="muted-small">Please choose your login portal:</p>
+    <div class="space-y-4">
+      <button onclick="showApplication('admin')" class="w-full py-3 btn-primary btn-rounded text-white font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-2">
+        <i data-lucide="shield"></i> <span>Admin Panel Login</span>
+      </button>
+      <button onclick="showApplication('student')" class="w-full py-3 btn-accent btn-rounded text-white font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-2">
+        <i data-lucide="user"></i> <span>Student Panel Login</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ADMIN APP -->
+  <div id="admin-application" class="hidden w-full min-h-screen">
+    <!-- Admin Login -->
+    <div id="admin-login-view" class="w-full h-screen flex items-center justify-center">
+      <div class="bg-white p-10 rounded-xl shadow-2xl w-full max-w-md">
+        <div class="flex items-center space-x-3 pb-6 border-b border-gray-200 mb-6">
+          <i data-lucide="shield-half" class="w-8 h-8 text-white header-on-primary" style="background:var(--primary); border-radius:8px; padding:.45rem;"></i>
+          <h2 class="text-2xl font-bold" style="color:var(--primary-dark)">Admin Login</h2>
+        </div>
+        <form onsubmit="handleAdminLogin(event)" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium" style="color:#6b8a6b">Email</label>
+            <input type="email" id="admin-email" value="admin@lms.edu" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium" style="color:#6b8a6b">Password</label>
+            <input type="password" id="admin-password" value="123456" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 outline-none">
+          </div>
+          <button type="submit" class="w-full py-3 btn-primary text-white font-bold rounded-xl transition shadow-md">
+            Sign In to Dashboard
+          </button>
+        </form>
+        <p class="text-center text-xs muted-small mt-6">Credentials: admin@lms.edu / 123456</p>
+        <button onclick="showApplication('chooser')" class="w-full mt-4 text-xs" style="color:var(--primary);">Change Portal</button>
+      </div>
+    </div>
+
+    <!-- Admin Main Content -->
+    <div id="admin-main-content-view" class="hidden min-h-screen w-full flex">
+      <aside class="sidebar flex flex-col p-4 shadow-lg shrink-0 text-white">
+        <div class="flex items-center space-x-3 pb-6 border-b" style="border-color: rgba(255,255,255,.06)">
+          <div class="brand">A</div>
+          <h1 class="text-xl font-bold text-white tracking-wide">Admin Panel</h1>
+        </div>
+
+        <nav class="flex-grow mt-6 space-y-2">
+          <button onclick="switchAdminTab('admin-dashboard', this)" class="sidebar-link active w-full flex items-center space-x-3 p-3 rounded-xl transition"> <i data-lucide="layout-dashboard"></i> <span>Dashboard</span></button>
+          <button onclick="switchAdminTab('book-management', this)" class="sidebar-link w-full flex items-center space-x-3 p-3 rounded-xl transition"> <i data-lucide="book-open"></i> <span>Books</span></button>
+          <button onclick="switchAdminTab('member-management', this)" class="sidebar-link w-full flex items-center space-x-3 p-3 rounded-xl transition"> <i data-lucide="users"></i> <span>Members</span></button>
+          <button onclick="switchAdminTab('admin-users', this)" class="sidebar-link w-full flex items-center space-x-3 p-3 rounded-xl transition"> <i data-lucide="shield"></i> <span>Admins</span></button>
+        </nav>
+
+        <button onclick="handleLogout('admin', false)" class="mt-auto flex items-center justify-center space-x-2 py-3 bg-red-500 hover:bg-red-600 rounded-xl transition text-white">
+          <i data-lucide="log-out"></i> <span>Logout</span>
+        </button>
+      </aside>
+
+      <div class="flex-1 p-8 custom-scroll overflow-y-auto">
+        <div class="flex items-center justify-between pb-6 mb-8 border-b border-gray-200">
+          <h2 class="text-3xl font-bold" style="color:var(--primary-dark)">Dashboard</h2>
+          <div class="flex items-center space-x-3">
+            <div class="text-right">
+              <p id="admin-header-name" class="font-semibold text-sm">Loading...</p>
+              <p class="text-xs muted-small">Admin</p>
+            </div>
+            <img id="admin-header-avatar" src="" alt="Admin" class="w-10 h-10 rounded-full border-2" style="border-color:var(--primary);">
+          </div>
+        </div>
+
+        <section id="admin-dashboard-content" class="admin-content-section space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm card-accent">
+              <p class="text-gray-500 text-sm">Total Books</p>
+              <h3 id="total-books-stat" class="text-3xl font-bold mt-1">0</h3>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm card-accent-orange">
+              <p class="text-gray-500 text-sm">Total Members</p>
+              <h3 id="total-members-stat" class="text-3xl font-bold mt-1">0</h3>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm card-accent">
+              <p class="text-gray-500 text-sm">Books Issued</p>
+              <h3 id="books-issued-stat" class="text-3xl font-bold mt-1">0</h3>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-xl shadow">
+            <h3 class="text-lg font-bold" style="color:var(--primary-dark)">Latest Transactions</h3>
+            <div id="transaction-list">
+              <p class="text-sm muted-small">No recent transactions.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="book-management-content" class="admin-content-section hidden space-y-6">
+          <div class="bg-white p-6 rounded-xl shadow">
+            <h3 class="text-lg font-bold" style="color:var(--primary-dark)">Add New Book</h3>
+            <form id="add-book-form" onsubmit="saveBook(event)" class="grid grid-cols-5 gap-4 mt-4">
+              <input id="book-title" placeholder="Title" required class="border p-2 rounded">
+              <input id="book-author" placeholder="Author" required class="border p-2 rounded">
+              <input id="book-isbn" placeholder="ISBN" required class="border p-2 rounded">
+              <input id="book-quantity" type="number" placeholder="Qty" required class="border p-2 rounded">
+              <button type="submit" class="bg-[var(--primary)] text-white rounded font-medium hover:bg-[var(--primary-dark)]">Add</button>
+            </form>
+          </div>
+
+          <div class="bg-white p-6 rounded-xl shadow">
+            <h3 class="text-lg font-bold" style="color:var(--primary-dark)">Catalog</h3>
+            <div id="book-management-list" class="mt-3">Loading...</div>
+          </div>
+        </section>
+
+        <section id="member-management-content" class="admin-content-section hidden space-y-6">
+          <div id="member-management-tabs" class="flex space-x-4 border-b">
+            <button data-subtab="view" onclick="switchAdminSubTab('member','view',this)" class="tab-btn active py-2 border-b-2" style="border-color:var(--primary); color:var(--primary); font-weight:600">View Members</button>
+            <button data-subtab="add" onclick="switchAdminSubTab('member','add',this)" class="tab-btn py-2 muted-small">Add Member</button>
+            <button data-subtab="issue-return" onclick="switchAdminSubTab('member','issue-return',this)" class="tab-btn py-2 muted-small">Issue/Return</button>
+          </div>
+
+          <div id="member-view-tab" class="member-subtab-content bg-white p-6 rounded-xl shadow">
+            <h3 class="font-bold" style="color:var(--primary-dark)">Registered Members</h3>
+            <div id="member-view-list" class="mt-3">Loading...</div>
+          </div>
+
+          <div id="member-add-tab" class="member-subtab-content hidden bg-white p-6 rounded-xl shadow max-w-lg">
+            <h3 class="font-bold" style="color:var(--primary-dark)">Register New Member</h3>
+            <form id="add-member-form" onsubmit="addMember(event)" class="space-y-4 mt-3">
+              <input id="member-name" placeholder="Full Name" required class="w-full border p-2 rounded">
+              <input id="member-id" placeholder="Student ID (e.g., S1234)" required class="w-full border p-2 rounded">
+              <input id="member-email" type="email" placeholder="Email" required class="w-full border p-2 rounded">
+              <button type="submit" class="w-full bg-[var(--primary)] text-white p-2 rounded font-medium hover:bg-[var(--primary-dark)]">Register</button>
+            </form>
+          </div>
+
+          <div id="member-issue-return-tab" class="member-subtab-content hidden bg-white p-6 rounded-xl shadow max-w-lg">
+            <h3 class="font-bold" style="color:var(--primary-dark)">Issue/Return Book</h3>
+            <div class="space-y-4 mt-3">
+              <input placeholder="Member ID (e.g., S1234)" class="w-full border p-2 rounded">
+              <input placeholder="Book ISBN (e.g., 978-013)" class="w-full border p-2 rounded">
+              <button onclick="showMessage('Simulated','Issue/Return processed','info')" class="w-full bg-[var(--accent)] text-white p-2 rounded font-medium hover:opacity-95">Process</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="admin-users-content" class="admin-content-section hidden space-y-6">
+          <div id="admin-users-tabs" class="flex space-x-4 border-b">
+            <button data-subtab="add-multiple" onclick="switchAdminSubTab('admin','add-multiple',this)" class="tab-btn active py-2 border-b-2" style="border-color:var(--primary); color:var(--primary); font-weight:600">Bulk Add</button>
+            <button data-subtab="change-password" onclick="switchAdminSubTab('admin','change-password',this)" class="tab-btn py-2 muted-small">Password</button>
+          </div>
+
+          <div id="admin-add-multiple-tab" class="admin-subtab-content bg-white p-6 rounded-xl shadow">
+            <h3 class="font-bold" style="color:var(--primary-dark)">Add Multiple Admins (CSV)</h3>
+            <textarea class="w-full border p-3 rounded h-32 mt-2" placeholder="email,password,role"></textarea>
+            <button onclick="showMessage('Simulated','Bulk upload processed','success')" class="mt-2 bg-[var(--primary)] text-white px-4 py-2 rounded">Process</button>
+          </div>
+
+          <div id="admin-change-password-tab" class="admin-subtab-content hidden bg-white p-6 rounded-xl shadow max-w-md">
+            <h3 class="font-bold" style="color:var(--primary-dark)">Change Password</h3>
+            <input type="password" placeholder="New Password" class="w-full border p-2 rounded mb-4">
+            <button onclick="handleLogout('admin', true)" class="w-full bg-[var(--primary)] text-white p-2 rounded">Update</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDENT APP -->
+  <div id="student-application" class="hidden h-screen overflow-hidden flex">
+    <!-- STUDENT LOGIN -->
+    <div id="student-login-view" class="w-full h-screen flex items-center justify-center">
+      <div class="bg-white p-10 rounded-xl shadow-2xl w-full max-w-md">
+        <div class="flex items-center space-x-3 pb-6 border-b border-gray-200 mb-6">
+          <i data-lucide="graduation-cap" class="w-8 h-8 header-on-primary" style="background:var(--primary); color:white; padding:.4rem; border-radius:8px;"></i>
+          <h2 class="text-2xl font-bold" style="color:var(--primary-dark)">Student Login</h2>
+        </div>
+        <form onsubmit="handleStudentLogin(event)" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium muted-small">Student ID</label>
+            <input type="text" id="student-login-id" value="233016112" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium muted-small">Password</label>
+            <input type="password" id="student-login-password" value="pass123" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 outline-none">
+          </div>
+          <button type="submit" class="w-full py-3 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-xl transition shadow-md">
+            Enter Student Panel
+          </button>
+        </form>
+        <p class="text-center text-xs muted-small mt-6">Credentials: 233016112 / pass123</p>
+        <button onclick="showApplication('chooser')" class="w-full mt-4 text-xs" style="color:var(--primary);">Change Portal</button>
+      </div>
+    </div>
+
+    <!-- STUDENT MAIN -->
+    <div id="student-main-content-view" class="hidden h-screen overflow-hidden flex flex-1">
+      <aside class="w-64 sidebar flex flex-col shadow-2xl z-20 shrink-0">
+        <div class="p-6 bg-[var(--primary-dark)] flex items-center gap-3 rounded-tl-xl rounded-tr-xl">
+          <div class="w-8 h-8 bg-white rounded-md flex items-center justify-center text-[var(--primary)] font-bold">L</div>
+          <h1 class="text-xl font-bold text-white tracking-wide">Library System</h1>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4 space-y-1 p-2">
+          <div class="student-sidebar-link active" onclick="switchStudentTab('dashboard', this)">
+            <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> <span>Dashboard</span>
+          </div>
+          <div class="student-sidebar-link" onclick="switchStudentTab('search', this)">
+            <i data-lucide="search" class="w-5 h-5 mr-3"></i> <span>Search Books</span>
+          </div>
+          <div class="student-sidebar-link" onclick="switchStudentTab('my-books', this)">
+            <i data-lucide="book-open" class="w-5 h-5 mr-3"></i> <span>My Issued Books</span>
+          </div>
+          <div class="student-sidebar-link" onclick="switchStudentTab('profile', this)">
+            <i data-lucide="user-cog" class="w-5 h-5 mr-3"></i> <span>Profile</span>
+          </div>
+          <div class="student-sidebar-link" onclick="switchStudentTab('history', this)">
+            <i data-lucide="history" class="w-5 h-5 mr-3"></i> <span>Activity History</span>
+          </div>
+        </nav>
+
+        <div class="p-4 border-t" style="border-color:rgba(0,0,0,.06)">
+          <button onclick="handleLogout('student')" class="flex items-center justify-center w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition shadow-lg">
+            <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Logout
+          </button>
+        </div>
+      </aside>
+
+      <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-8 z-10">
+          <h2 id="header-title" class="text-2xl font-bold">Dashboard</h2>
+          <div class="flex items-center gap-4">
+            <div class="text-right hidden sm:block">
+              <p class="font-semibold text-sm" id="student-header-name">Loading...</p>
+              <p class="text-xs muted-small" id="student-header-id-display">Student ID: ...</p>
+            </div>
+            <div class="w-10 h-10 bg-gray-200 rounded-full overflow-hidden border-2" style="border-color:var(--primary);">
+              <img id="student-header-avatar" src="" alt="User">
+            </div>
+          </div>
+        </header>
+
+        <div id="main-container" class="flex-1 overflow-y-auto p-8">
+          <div id="dashboard" class="student-content-section">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div class="bg-white p-6 rounded-xl shadow-sm border-l-4" style="border-color:var(--primary);">
+                <div><p class="text-gray-500 text-sm">Issued Books</p><h3 class="text-3xl font-bold">3</h3></div>
+                <div class="p-3 bg-[rgba(76,175,80,0.08)] rounded-full text-[var(--primary-dark)]" style="display:none"></div>
+              </div>
+
+              <div class="bg-white p-6 rounded-xl shadow-sm border-l-4" style="border-color:var(--accent);">
+                <div><p class="text-gray-500 text-sm">Pending Returns</p><h3 class="text-3xl font-bold">1</h3></div>
+                <div class="p-3 bg-[rgba(217,136,11,0.08)] rounded-full text-[var(--accent)]" style="display:none"></div>
+              </div>
+
+              <div class="bg-white p-6 rounded-xl shadow-sm border-l-4" style="border-color:var(--primary-dark);">
+                <div><p class="text-gray-500 text-sm">Total Borrowed</p><h3 class="text-3xl font-bold">12</h3></div>
+                <div class="p-3 bg-[rgba(30,94,32,0.06)] rounded-full text-[var(--primary-dark)]" style="display:none"></div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="font-semibold text-lg" style="color:var(--primary-dark)">Currently Issued Books</h3>
+              </div>
+              <table class="w-full text-left">
+                <thead class="bg-gray-50 text-gray-500 text-sm uppercase">
+                  <tr>
+                    <th class="px-6 py-3">Book Title</th>
+                    <th class="px-6 py-3">Author</th>
+                    <th class="px-6 py-3">Due Date</th>
+                    <th class="px-6 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm">
+                  <tr>
+                    <td class="px-6 py-4 font-medium">Introduction to Algorithms</td>
+                    <td class="px-6 py-4">Thomas H. Cormen</td>
+                    <td class="px-6 py-4">2023-12-01</td>
+                    <td class="px-6 py-4"><span class="badge-active">Active</span></td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 font-medium">Clean Code</td>
+                    <td class="px-6 py-4">Robert C. Martin</td>
+                    <td class="px-6 py-4">2023-11-28</td>
+                    <td class="px-6 py-4"><span class="badge-warning">Expiring Soon</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="search" class="student-content-section hidden mt-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm mb-8">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="md:col-span-2 relative">
+                  <i data-lucide="search" class="absolute left-3 top-3 text-gray-400 w-5 h-5"></i>
+                  <input type="text" placeholder="Search by Title, Author..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2">
+                </div>
+                <select class="border border-gray-200 rounded-lg px-4 py-2 focus:outline-none">
+                  <option>All Categories</option>
+                  <option>Computer Science</option>
+                  <option>Physics</option>
+                  <option>Literature</option>
+                </select>
+                <select class="border border-gray-200 rounded-lg px-4 py-2 focus:outline-none">
+                  <option>Any Status</option>
+                  <option>Available</option>
+                  <option>Out of Stock</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden group">
+                <div class="h-48 bg-gray-200 relative overflow-hidden">
+                  <div class="w-full h-full flex items-center justify-center bg-gray-300 text-gray-500">Book Cover</div>
+                  <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition flex items-center justify-center">
+                    <button onclick="openModal()" class="bg-white text-[var(--primary)] px-4 py-2 rounded-lg font-semibold opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition">View Details</button>
+                  </div>
+                </div>
+                <div class="p-4">
+                  <span class="text-xs font-bold" style="background:#EDF7EC; color:var(--primary-dark); padding:.2rem .45rem; border-radius:6px;">CSE</span>
+                  <h3 class="font-bold mt-2 truncate" style="color:var(--primary-dark)">Web Development 101</h3>
+                  <p class="text-sm muted-small">Jamil Uddin</p>
+                  <div class="mt-3 flex items-center justify-between">
+                    <span class="text-xs" style="color:var(--primary-dark); font-weight:600;"><i data-lucide="check" class="w-3 h-3 mr-1"></i> Available</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="my-books" class="student-content-section hidden mt-6">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+              <h3 class="font-bold text-lg mb-4" style="color:var(--primary-dark)">My Issued Books & Deadlines</h3>
+              <div class="space-y-4">
+                <div class="flex flex-col md:flex-row items-center justify-between p-4 border border-gray-100 rounded-lg bg-[#fff3f2]">
+                  <div class="flex items-center gap-4 mb-2 md:mb-0">
+                    <div class="w-12 h-12 bg-gray-200 flex items-center justify-center rounded-md text-red-600"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+                    <div>
+                      <p class="font-semibold">The Great Gatsby</p>
+                      <p class="text-sm muted-small">Due: 2 days left (2023-11-24)</p>
+                    </div>
+                  </div>
+                  <button class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition">Return</button>
+                </div>
+
+                <div class="flex flex-col md:flex-row items-center justify-between p-4 border border-gray-100 rounded-lg">
+                  <div class="flex items-center gap-4 mb-2 md:mb-0">
+                    <div class="w-12 h-12 bg-gray-200 flex items-center justify-center rounded-md text-blue-600"><i data-lucide="book" class="w-6 h-6"></i></div>
+                    <div>
+                      <p class="font-semibold">Introduction to Algorithms</p>
+                      <p class="text-sm muted-small">Due: 14 days left (2023-12-08)</p>
+                    </div>
+                  </div>
+                  <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition">Return</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="profile" class="student-content-section hidden mt-6">
+            <div class="max-w-2xl bg-white p-8 rounded-xl shadow-sm">
+              <h3 class="font-bold text-lg mb-6 pb-2 border-b" style="color:var(--primary-dark)">Profile Management</h3>
+              <form id="profile-form" class="space-y-6" onsubmit="saveProfile(event)">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label class="block text-sm font-medium muted-small mb-2">Full Name</label>
+                    <input type="text" id="profile-name" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium muted-small mb-2">Student ID</label>
+                    <input type="text" id="profile-id" disabled class="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 cursor-not-allowed text-gray-500">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium muted-small mb-2">Email</label>
+                    <input type="email" id="profile-email" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium muted-small mb-2">Avatar URL (Optional)</label>
+                    <input type="url" id="profile-avatar" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50">
+                  </div>
+                  <div class="md:col-span-2">
+                    <label class="block text-sm font-medium muted-small mb-2">New Password (Leave blank to keep current)</label>
+                    <input type="password" id="profile-password" class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50">
+                  </div>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-2">
+                  <i data-lucide="save" class="w-5 h-5"></i> <span>Save Profile Changes</span>
+                </button>
+                <p id="profile-message" class="text-sm text-center pt-2"></p>
+              </form>
+            </div>
+          </div>
+
+          <div id="history" class="student-content-section hidden mt-6">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+              <h3 class="font-bold text-lg mb-4" style="color:var(--primary-dark)">Past Borrowing Activity</h3>
+              <ul class="space-y-4">
+                <li class="p-4 border rounded-lg flex justify-between items-center bg-gray-50">
+                  <div>
+                    <p class="font-medium">The Lord of the Rings: The Fellowship of the Ring</p>
+                    <p class="text-sm muted-small">Borrowed: 2023-09-01 | Returned: 2023-09-22</p>
+                  </div>
+                  <span class="badge-active">Returned</span>
+                </li>
+                <li class="p-4 border rounded-lg flex justify-between items-center bg-gray-50">
+                  <div>
+                    <p class="font-medium">Data Structures and Algorithms in Python</p>
+                    <p class="text-sm muted-small">Borrowed: 2023-07-10 | Returned: 2023-08-01</p>
+                  </div>
+                  <span class="badge-active">Returned</span>
+                </li>
+                <li class="p-4 border rounded-lg flex justify-between items-center bg-gray-50">
+                  <div>
+                    <p class="font-medium">Calculus: Early Transcendentals</p>
+                    <p class="text-sm muted-small">Borrowed: 2023-05-15 | Returned: 2023-06-15</p>
+                  </div>
+                  <span class="badge-active">Returned</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="book-modal" class="fixed inset-0 hidden modal-overlay flex items-center justify-center p-4 z-50">
+          <div class="modal-card">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+              <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <h3 class="text-2xl font-bold" style="color:var(--primary-dark); margin-bottom:.5rem;">Book Details</h3>
+            <div class="space-y-3">
+              <p><strong>Title:</strong> Web Development 101</p>
+              <p><strong>Author:</strong> Jamil Uddin</p>
+              <p><strong>ISBN:</strong> 978-1234567890</p>
+              <p><strong>Category:</strong> Computer Science</p>
+              <p><strong>Available Copies:</strong> <span style="color:var(--primary-dark); font-weight:700">5</span></p>
+              <p><strong>Description:</strong> A comprehensive introduction to modern web technologies including HTML, CSS, and JavaScript.</p>
+            </div>
+            <button class="w-full mt-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-xl transition">Request Borrow</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
+  <script>
+    // --- Global State ---
+    let currentPanel = 'chooser';
+    const defaultStudentName = 'John Doe';
+    const defaultStudentId = '233016112';
+
+    // Utility for message
+    function showMessage(title, message, type){
+      const box = document.getElementById('message-box');
+      box.innerHTML = `<strong style="display:block">${title}</strong><span>${message}</span>`;
+      box.className = 'fixed top-5 right-5 p-4 rounded-lg shadow-xl text-white z-50 transition-transform duration-300 translate-x-0';
+      box.style.backgroundColor = (type==='success') ? '#2E7D32' : (type==='error') ? '#C62828' : (type==='info') ? '#1565C0' : '#374151';
+      setTimeout(()=>{ box.classList.remove('translate-x-0'); box.classList.add('translate-x-full'); }, 3000);
+    }
+
+    function showApplication(mode){
+      document.getElementById('chooser-view').classList.add('hidden');
+      document.getElementById('admin-application').classList.add('hidden');
+      document.getElementById('student-application').classList.add('hidden');
+      document.body.className = 'initial-mode flex justify-center items-center';
+      currentPanel = mode;
+
+      if(mode==='admin'){
+        document.getElementById('admin-application').classList.remove('hidden');
+        document.getElementById('admin-login-view').classList.remove('hidden');
+        document.getElementById('admin-main-content-view').classList.add('hidden');
+        document.body.classList.remove('initial-mode','flex','justify-center','items-center');
+        document.body.classList.add('admin-login-mode','h-screen','flex','justify-center','items-center');
+      } else if(mode==='student'){
+        document.getElementById('student-application').classList.remove('hidden');
+        document.getElementById('student-login-view').classList.remove('hidden');
+        document.getElementById('student-main-content-view').classList.add('hidden');
+        document.body.classList.remove('initial-mode','flex','justify-center','items-center');
+        document.body.classList.add('student-mode','h-screen','flex','justify-center','items-center');
+      } else {
+        document.getElementById('chooser-view').classList.remove('hidden');
+        document.body.classList.add('initial-mode','flex','justify-center','items-center');
+      }
+      lucide.createIcons();
+    }
+
+    function handleLogout(panel, update){
+      if(panel==='student'){
+        localStorage.removeItem('currentStudentId');
+      }
+      if(panel==='admin'){
+        document.getElementById('admin-main-content-view').classList.add('hidden');
+        document.getElementById('admin-login-view').classList.remove('hidden');
+        document.body.classList.remove('admin-dashboard-mode','flex');
+        document.body.classList.add('admin-login-mode','flex','justify-center','items-center');
+        showMessage('Admin', update ? 'Password updated and logged out!' : 'Logout successful.', 'info');
+        showApplication('chooser');
+      } else {
+        document.getElementById('student-main-content-view').classList.add('hidden');
+        document.getElementById('student-login-view').classList.remove('hidden');
+        document.body.classList.remove('student-mode','flex');
+        document.body.classList.add('initial-mode','flex','justify-center','items-center');
+        showMessage('Student','Logout successful.','info');
+        showApplication('chooser');
+      }
+    }
+
+    // Admin login
+    function handleAdminLogin(event){
+      event.preventDefault();
+      const email = document.getElementById('admin-email').value;
+      const password = document.getElementById('admin-password').value;
+
+      if(email==='admin@lms.edu' && password==='123456'){
+        document.getElementById('admin-login-view').classList.add('hidden');
+        document.getElementById('admin-main-content-view').classList.remove('hidden');
+        document.body.classList.remove('admin-login-mode','flex','justify-center','items-center');
+        document.body.classList.add('admin-dashboard-mode','flex');
+        document.getElementById('admin-header-name').innerText='Main Admin';
+        document.getElementById('admin-header-avatar').src='https://picsum.photos/40/40?random=1';
+        showMessage('Admin','Login successful. Welcome!','success');
+        document.getElementById('total-books-stat').innerText='120';
+        document.getElementById('total-members-stat').innerText='55';
+        document.getElementById('books-issued-stat').innerText='23';
+      } else {
+        showMessage('Error','Invalid credentials.','error');
+      }
+    }
+
+    function switchAdminTab(tabId, element){
+      document.querySelectorAll('.admin-content-section').forEach(s=>s.classList.add('hidden'));
+      document.getElementById(tabId+'-content').classList.remove('hidden');
+      document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.remove('active'));
+      element.classList.add('active');
+      const titleMap={'admin-dashboard':'Dashboard','book-management':'Book Management','member-management':'Member Management','admin-users':'Admin Users'};
+      document.querySelector('#admin-main-content-view .text-3xl').innerText=titleMap[tabId];
+      lucide.createIcons();
+      if(tabId==='book-management') renderBookList();
+      else if(tabId==='member-management') { switchAdminSubTab('member','view', document.querySelector('#member-management-tabs .tab-btn[data-subtab="view"]')); renderMemberList(); }
+      else if(tabId==='admin-users') switchAdminSubTab('admin','add-multiple', document.querySelector('#admin-users-tabs .tab-btn[data-subtab="add-multiple"]'));
+    }
+
+    function switchAdminSubTab(parent, subTabId, element){
+      // deactivate all (works for both admin & member groups)
+      document.querySelectorAll(`#${parent}-management-tabs .tab-btn, #${parent}-users-tabs .tab-btn`).forEach(btn=>{
+        btn.classList.remove('active'); btn.style.borderBottom='none'; btn.style.color='';
+      });
+      if(element){
+        element.classList.add('active');
+        element.style.borderBottom=`2px solid var(--primary)`;
+        element.style.color='var(--primary)';
+      }
+      document.querySelectorAll(`.${parent}-subtab-content`).forEach(c=>c.classList.add('hidden'));
+      const id = `${parent}-${subTabId}-tab`;
+      const el = document.getElementById(id);
+      if(el) el.classList.remove('hidden');
+    }
+
+    // Books simulation (kept same)
+    let books = JSON.parse(localStorage.getItem('books')) || [
+      { id: 1, title: "The Martian", author: "Andy Weir", isbn: "978-01314290", quantity: 10, available: 8 },
+      { id: 2, title: "Deep Learning", author: "Ian Goodfellow", isbn: "978-01314291", quantity: 5, available: 5 },
+      { id: 3, title: "Sapiens", author: "Yuval Noah Harari", isbn: "978-01314292", quantity: 20, available: 18 }
+    ];
+
+    function saveBook(event){
+      event.preventDefault();
+      const title=document.getElementById('book-title').value;
+      const author=document.getElementById('book-author').value;
+      const isbn=document.getElementById('book-isbn').value;
+      const quantity=parseInt(document.getElementById('book-quantity').value);
+      const newBook={id:Date.now(),title,author,isbn,quantity,available:quantity};
+      books.push(newBook);
+      localStorage.setItem('books',JSON.stringify(books));
+      renderBookList();
+      document.getElementById('add-book-form').reset();
+      showMessage('Success',`Book "${title}" added.`,'success');
+    }
+
+    function renderBookList(){
+      const container=document.getElementById('book-management-list');
+      if(!books || books.length===0){ container.innerHTML='<p class="text-gray-500">No books in catalog.</p>'; return; }
+      let html=`<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Title</th><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Author</th><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">ISBN</th><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Total/Available</th><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+      books.forEach(book=>{
+        html+=`<tr><td class="px-6 py-4 whitespace-nowrap text-sm font-medium" style="color:var(--primary-dark)">${book.title}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${book.author}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${book.isbn}</td><td class="px-6 py-4 whitespace-nowrap text-sm font-bold" style="color:var(--primary-dark)">${book.quantity} / <span style="color:${book.available>0? 'var(--primary-dark)':'#C62828'}">${book.available}</span></td><td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><button onclick="deleteBook(${book.id})" class="text-[var(--accent)] hover:opacity-80 ml-2">Delete</button></td></tr>`;
+      });
+      html+=`</tbody></table></div>`;
+      container.innerHTML=html;
+    }
+
+    function deleteBook(id){
+      const idx=books.findIndex(b=>b.id===id);
+      if(idx!==-1){
+        const title=books[idx].title;
+        books.splice(idx,1);
+        localStorage.setItem('books',JSON.stringify(books));
+        renderBookList();
+        showMessage('Deleted',`Book "${title}" removed.`,'info');
+      }
+    }
+
+    // Members simulation
+    let members = JSON.parse(localStorage.getItem('members')) || [
+      { id: 'S1234', name: 'Alice Smith', email: 'alice@student.edu', date: '2023-01-15' },
+      { id: 'S5678', name: 'Bob Johnson', email: 'bob@student.edu', date: '2023-03-20' },
+    ];
+
+    function addMember(event){
+      event.preventDefault();
+      const name=document.getElementById('member-name').value;
+      const id=document.getElementById('member-id').value;
+      const email=document.getElementById('member-email').value;
+      if(members.some(m=>m.id===id)){ showMessage('Error',`Member ID ${id} already exists.`,'error'); return; }
+      const newMember={id,name,email,date:new Date().toISOString().split('T')[0]};
+      members.push(newMember);
+      localStorage.setItem('members',JSON.stringify(members));
+      renderMemberList();
+      document.getElementById('add-member-form').reset();
+      showMessage('Success',`${name} registered as a new member.`,'success');
+    }
+
+    function renderMemberList(){
+      const container=document.getElementById('member-view-list');
+      if(!members || members.length===0){ container.innerHTML='<p class="text-gray-500">No members registered.</p>'; return; }
+      let html=`<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">ID</th><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Name</th><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Email</th><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Reg. Date</th></tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+      members.forEach(member=>{
+        html+=`<tr><td class="px-6 py-4 whitespace-nowrap text-sm font-medium" style="color:var(--primary-dark)">${member.id}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${member.name}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${member.email}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${member.date}</td></tr>`;
+      });
+      html+=`</tbody></table></div>`;
+      container.innerHTML=html;
+    }
+
+    // STUDENT PANEL LOGIC
+    function loadProfileHeader(){
+      const studentId = localStorage.getItem('currentStudentId') || defaultStudentId;
+      const savedName = localStorage.getItem('studentProfileName_' + studentId) || defaultStudentName;
+      const savedAvatar = localStorage.getItem('studentProfileAvatar_' + studentId) || 'https://i.pravatar.cc/150?u=' + studentId;
+      document.getElementById('student-header-name').innerText = savedName;
+      document.getElementById('student-header-id-display').innerText = `Student ID: ${studentId}`;
+      document.getElementById('student-header-avatar').src = savedAvatar;
+    }
+
+    function loadProfile(){
+      const studentId = localStorage.getItem('currentStudentId') || defaultStudentId;
+      const savedName = localStorage.getItem('studentProfileName_' + studentId) || defaultStudentName;
+      const savedEmail = localStorage.getItem('studentProfileEmail_' + studentId) || 'johndoe@student.edu';
+      const savedAvatar = localStorage.getItem('studentProfileAvatar_' + studentId) || 'https://i.pravatar.cc/150?u=' + studentId;
+      loadProfileHeader();
+      const profileNameInput=document.getElementById('profile-name');
+      const profileIdInput=document.getElementById('profile-id');
+      const profileEmailInput=document.getElementById('profile-email');
+      const profileAvatarInput=document.getElementById('profile-avatar');
+      if(profileNameInput) profileNameInput.value=savedName;
+      if(profileIdInput) profileIdInput.value=studentId;
+      if(profileEmailInput) profileEmailInput.value=savedEmail;
+      if(profileAvatarInput) profileAvatarInput.value=savedAvatar;
+    }
+
+    function handleStudentLogin(event){
+      event.preventDefault();
+      const id=document.getElementById('student-login-id').value;
+      const password=document.getElementById('student-login-password').value;
+      const defaultPass='pass123';
+      if(id===defaultStudentId && password===defaultPass){
+        localStorage.setItem('currentStudentId',id);
+        document.getElementById('student-login-view').classList.add('hidden');
+        document.getElementById('student-main-content-view').classList.remove('hidden');
+        document.body.classList.remove('initial-mode','flex','justify-center','items-center');
+        document.body.classList.add('student-mode','flex');
+        loadProfileHeader();
+        switchStudentTab('dashboard', document.querySelector('.student-sidebar-link[onclick*="dashboard"]'));
+        showMessage('Student','Login successful. Welcome back!','success');
+      } else { showMessage('Error','Invalid Student ID or Password.','error'); }
+    }
+
+    function switchStudentTab(tabId, element){
+      document.querySelectorAll('.student-content-section').forEach(s=>s.classList.add('hidden'));
+      const el=document.getElementById(tabId);
+      if(el) el.classList.remove('hidden');
+      document.querySelectorAll('.student-sidebar-link').forEach(l=>l.classList.remove('active'));
+      if(element) element.classList.add('active');
+      const titles={'dashboard':'Dashboard','search':'Search Books','my-books':'My Issued Books','profile':'Profile Management','history':'Activity History'};
+      document.getElementById('header-title').innerText = titles[tabId] || 'Dashboard';
+      lucide.createIcons();
+      if(tabId==='profile') loadProfile();
+    }
+
+    function saveProfile(event){
+      event.preventDefault();
+      const studentId=localStorage.getItem('currentStudentId')||defaultStudentId;
+      const newName=document.getElementById('profile-name').value.trim();
+      const newEmail=document.getElementById('profile-email').value.trim();
+      const newAvatar=document.getElementById('profile-avatar').value.trim();
+      const newPassword=document.getElementById('profile-password').value.trim();
+      const messageElement=document.getElementById('profile-message');
+      if(!newName){ messageElement.innerText='Name cannot be empty.'; messageElement.className='text-sm text-red-500 pt-2 text-center'; return; }
+      localStorage.setItem('studentProfileName_'+studentId,newName);
+      localStorage.setItem('studentProfileEmail_'+studentId,newEmail);
+      localStorage.setItem('studentProfileAvatar_'+studentId,newAvatar);
+      if(newPassword){ showMessage('Profile','Password updated (simulated).','info'); document.getElementById('profile-password').value=''; }
+      loadProfileHeader();
+      showMessage('Profile','Profile saved successfully!','success');
+      messageElement.innerText='Profile saved successfully!'; messageElement.className='text-sm text-green-500 pt-2 text-center';
+      setTimeout(()=>{ messageElement.innerText=''; },3000);
+    }
+
+    // modal
+    const modal = document.getElementById('book-modal');
+    function openModal(){ modal.classList.remove('hidden'); }
+    function closeModal(){ modal.classList.add('hidden'); }
+    if(modal){ modal.addEventListener('click', e=>{ if(e.target===modal) closeModal(); }); }
+
+    // init icons
+    lucide.createIcons();
+  </script>
+</body>
+</html> 

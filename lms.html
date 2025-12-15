@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Library Management System - Unified Panel</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* -------------------------
+       THEME COLORS
+       ------------------------- */
+    :root{
+      --primary: #4CAF50;        /* Forest Green */
+      --primary-dark: #1E5E20;   /* Deep green */
+      --secondary: #F2F0EA;      /* Ivory */
+      --accent: #D9880B;         /* Muted orange */
+      --muted-bg: #F9F8F4;
+    }
+
+    /* BASE */
+    html,body{height:100%}
+    body{ margin:0; font-family:'Inter',sans-serif; background-color:var(--secondary); color:var(--primary-dark); }
+    h1,h2,h3{font-family:'Poppins',sans-serif}
+    a{color:inherit}
+
+    /* UTILITIES */
+    .rounded-xl{border-radius:14px}
+    .rounded-lg{border-radius:10px}
+    
+    /* MESSAGE BOX */
+    #message-box{ right:1.25rem; top:1.25rem; transform:translateX(200%); transition:transform .3s ease; z-index:50; padding:.75rem 1rem; border-radius:10px; }
+    #message-box.translate-x-0{ transform: translateX(0); }
+
+    /* CHOOSER VIEW */
+    #chooser-view{ background-color:white; border-radius:14px; box-shadow:0 12px 30px rgba(0,0,0,.08); }
+    #chooser-view h1{ color:var(--primary); }
+
+    /* BUTTONS */
+    .btn-primary, button.bg-primary{ background-color:var(--primary); color:white; }
+    .btn-primary:hover{ background-color:var(--primary-dark); }
+    .btn-accent{ background-color:var(--accent); color:white; }
+    .btn-accent:hover{ opacity:.95; }
+
+    /* SIDEBARS */
+    .sidebar{ background-color:var(--primary); width:260px; padding:1rem; }
+    .sidebar .brand { background:white; color:var(--primary); width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-weight:700; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.06); }
+    .sidebar-link{ color:rgba(255,255,255,.95); padding:.65rem .75rem; display:flex; align-items:center; gap:.75rem; border-radius:10px; transition:all .18s ease; cursor:pointer; }
+    .sidebar-link.active{ background-color:var(--primary-dark); color:white; border-left:4px solid var(--accent); }
+    .sidebar-link:hover{ background-color:#43A047; color:white; }
+
+    /* Student Sidebar */
+    .student-sidebar-link{ display:flex; align-items:center; gap:.75rem; padding:.65rem .75rem; color:rgba(255,255,255,.95); transition:all .18s ease; cursor:pointer; border-radius:10px; border-left:4px solid transparent; }
+    .student-sidebar-link:hover{ background-color:rgba(255,255,255,.08); color:white; }
+    .student-sidebar-link.active{ background-color:var(--secondary); color:var(--primary-dark); border-left-color:var(--accent); }
+
+    /* LAYOUT */
+    .card-accent { border-left:4px solid var(--primary); padding:1rem; border-radius:10px; background:white; }
+    .card-accent-orange { border-left:4px solid var(--accent); padding:1rem; background:white; border-radius:10px; }
+    table thead{ background:#efeae0; color:var(--primary-dark); }
+    table tbody tr:hover{ background:#f5f9f3; }
+    input, select, textarea{ border:1px solid #cfdccf; background:var(--muted-bg); color:var(--primary-dark); padding:.6rem .8rem; border-radius:8px; }
+    input:focus, select:focus{ outline:2px solid var(--primary); }
+    
+    /* MODAL */
+    .modal-overlay{ background-color: rgba(0,0,0,.45); }
+    .modal-card{ background:white; padding:1.25rem; border-radius:12px; box-shadow:0 18px 40px rgba(0,0,0,.12); border-top:6px solid var(--primary); }
+    .muted-small { color:#6b8a6b; font-size:.9rem; }
+    .header-on-primary{ background:var(--primary); color:white; padding:.6rem .9rem; border-radius:10px; }
+  </style>
+</head>
+<body class="initial-mode flex justify-center items-center">
+
+  <!-- Message box -->
+  <div id="message-box" class="fixed top-5 right-5 p-4 rounded-lg shadow-xl text-white z-50 transition-transform duration-300 transform translate-x-full"></div>
+
+  <!-- CHOOSER -->
+  <div id="chooser-view" class="w-full max-w-lg p-10 text-center bg-white rounded-xl shadow-2xl space-y-6">
+    <h1 class="text-3xl font-bold" style="color:var(--primary-dark)">Library System Access</h1>
+    <p class="muted-small">Please choose your login portal:</p>
+    <div class="space-y-4">
+      <button onclick="showApplication('admin')" class="w-full py-3 btn-primary btn-rounded text-white font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-2">
+        <i data-lucide="shield"></i> <span>Admin Panel Login</span>
+      </button>
+      <button onclick="showApplication('student')" class="w-full py-3 btn-accent btn-rounded text-white font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-2">
+        <i data-lucide="user"></i> <span>Student Panel Login</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ADMIN APP -->
+  <div id="admin-application" class="hidden w-full min-h-screen">
+    <!-- Admin Login -->
+    <div id="admin-login-view" class="w-full h-screen flex items-center justify-center">
+      <div class="bg-white p-10 rounded-xl shadow-2xl w-full max-w-md">
+        <div class="flex items-center space-x-3 pb-6 border-b border-gray-200 mb-6">
+          <i data-lucide="shield-half" class="w-8 h-8 text-white header-on-primary"></i>
+          <h2 class="text-2xl font-bold" style="color:var(--primary-dark)">Admin Login</h2>
+        </div>
+        <form onsubmit="handleAdminLogin(event)" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium" style="color:#6b8a6b">Email</label>
+            <input type="email" id="admin-email" value="admin@lms.edu" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium" style="color:#6b8a6b">Password</label>
+            <input type="password" id="admin-password" value="123" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 outline-none">
+          </div>
+          <button type="submit" class="w-full py-3 btn-primary text-white font-bold rounded-xl transition shadow-md">
+            Sign In to Dashboard
+          </button>
+        </form>
+        <p class="text-center text-xs muted-small mt-6">Credentials: admin@lms.edu / 123</p>
+        <button onclick="showApplication('chooser')" class="w-full mt-4 text-xs" style="color:var(--primary);">Change Portal</button>
+      </div>
+    </div>
+
+    <!-- Admin Main Content -->
+    <div id="admin-main-content-view" class="hidden min-h-screen w-full flex">
+      <aside class="sidebar flex flex-col p-4 shadow-lg shrink-0 text-white">
+        <div class="flex items-center space-x-3 pb-6 border-b" style="border-color: rgba(255,255,255,.06)">
+          <div class="brand">A</div>
+          <h1 class="text-xl font-bold text-white tracking-wide">Admin Panel</h1>
+        </div>
+        <nav class="flex-grow mt-6 space-y-2">
+          <button onclick="switchAdminTab('admin-dashboard', this)" class="sidebar-link active w-full flex items-center space-x-3 p-3 rounded-xl transition"> <i data-lucide="layout-dashboard"></i> <span>Dashboard</span></button>
+          <button onclick="switchAdminTab('book-management', this)" class="sidebar-link w-full flex items-center space-x-3 p-3 rounded-xl transition"> <i data-lucide="book-open"></i> <span>Books</span></button>
+          <button onclick="switchAdminTab('member-management', this)" class="sidebar-link w-full flex items-center space-x-3 p-3 rounded-xl transition"> <i data-lucide="users"></i> <span>Members</span></button>
+        </nav>
+        <button onclick="handleLogout('admin', false)" class="mt-auto flex items-center justify-center space-x-2 py-3 bg-red-500 hover:bg-red-600 rounded-xl transition text-white">
+          <i data-lucide="log-out"></i> <span>Logout</span>
+        </button>
+      </aside>
+
+      <div class="flex-1 p-8 custom-scroll overflow-y-auto">
+        <div class="flex items-center justify-between pb-6 mb-8 border-b border-gray-200">
+          <h2 class="text-3xl font-bold" style="color:var(--primary-dark)">Dashboard</h2>
+          <div class="flex items-center space-x-3">
+            <div class="text-right">
+              <p id="admin-header-name" class="font-semibold text-sm">Loading...</p>
+              <p class="text-xs muted-small">Admin</p>
+            </div>
+            <img id="admin-header-avatar" src="" alt="Admin" class="w-10 h-10 rounded-full border-2" style="border-color:var(--primary);">
+          </div>
+        </div>
+
+        <!-- DASHBOARD TAB -->
+        <section id="admin-dashboard-content" class="admin-content-section space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm card-accent">
+              <p class="text-gray-500 text-sm">Total Books</p>
+              <h3 id="total-books-stat" class="text-3xl font-bold mt-1">--</h3>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm card-accent-orange">
+              <p class="text-gray-500 text-sm">Total Members</p>
+              <h3 id="total-members-stat" class="text-3xl font-bold mt-1">--</h3>
+            </div>
+          </div>
+        </section>
+
+        <!-- BOOK MANAGEMENT TAB -->
+        <section id="book-management-content" class="admin-content-section hidden space-y-6">
+          <div class="bg-white p-6 rounded-xl shadow">
+            <h3 class="text-lg font-bold" style="color:var(--primary-dark)">Add New Book</h3>
+            <form id="add-book-form" onsubmit="saveBook(event)" class="grid grid-cols-5 gap-4 mt-4">
+              <input id="book-title" placeholder="Title" required class="border p-2 rounded">
+              <input id="book-author" placeholder="Author" required class="border p-2 rounded">
+              <input id="book-isbn" placeholder="ISBN" required class="border p-2 rounded">
+              <input id="book-quantity" type="number" placeholder="Qty" required class="border p-2 rounded">
+              <button type="submit" class="bg-[var(--primary)] text-white rounded font-medium hover:bg-[var(--primary-dark)]">Add</button>
+            </form>
+          </div>
+          <div class="bg-white p-6 rounded-xl shadow">
+            <h3 class="text-lg font-bold" style="color:var(--primary-dark)">Catalog</h3>
+            <div id="book-management-list" class="mt-3">Loading...</div>
+          </div>
+        </section>
+
+        <!-- MEMBER MANAGEMENT TAB -->
+        <section id="member-management-content" class="admin-content-section hidden space-y-6">
+          <div id="member-management-tabs" class="flex space-x-4 border-b">
+            <button data-subtab="view" onclick="switchAdminSubTab('member','view',this)" class="tab-btn active py-2 border-b-2" style="border-color:var(--primary); color:var(--primary); font-weight:600">View Members</button>
+            <button data-subtab="add" onclick="switchAdminSubTab('member','add',this)" class="tab-btn py-2 muted-small">Add Member</button>
+            <button data-subtab="issue-return" onclick="switchAdminSubTab('member','issue-return',this)" class="tab-btn py-2 muted-small">Issue/Return</button>
+          </div>
+
+          <div id="member-view-tab" class="member-subtab-content bg-white p-6 rounded-xl shadow">
+            <h3 class="font-bold" style="color:var(--primary-dark)">Registered Members</h3>
+            <div id="member-view-list" class="mt-3">Loading...</div>
+          </div>
+
+          <div id="member-add-tab" class="member-subtab-content hidden bg-white p-6 rounded-xl shadow max-w-lg">
+            <h3 class="font-bold" style="color:var(--primary-dark)">Register New Member</h3>
+            <form id="add-member-form" onsubmit="addMember(event)" class="space-y-4 mt-3">
+              <input id="member-name" placeholder="Full Name" required class="w-full border p-2 rounded">
+              <input id="member-id" placeholder="Student ID (e.g., S1234)" required class="w-full border p-2 rounded">
+              <input id="member-email" type="email" placeholder="Email" required class="w-full border p-2 rounded">
+              <button type="submit" class="w-full bg-[var(--primary)] text-white p-2 rounded font-medium hover:bg-[var(--primary-dark)]">Register</button>
+            </form>
+          </div>
+
+          <div id="member-issue-return-tab" class="member-subtab-content hidden bg-white p-6 rounded-xl shadow max-w-lg">
+            <h3 class="font-bold" style="color:var(--primary-dark)">Issue Book</h3>
+            <div class="space-y-4 mt-3">
+              <!-- Added IDs here to grab values -->
+              <input id="issue-student-id" placeholder="Student ID (e.g., 233016112)" class="w-full border p-2 rounded">
+              <input id="issue-book-isbn" placeholder="Book ISBN (e.g., 978-013...)" class="w-full border p-2 rounded">
+              <button onclick="handleIssueBook()" class="w-full bg-[var(--accent)] text-white p-2 rounded font-medium hover:opacity-95">Issue Book</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDENT APP -->
+  <div id="student-application" class="hidden h-screen overflow-hidden flex">
+    <!-- STUDENT LOGIN -->
+    <div id="student-login-view" class="w-full h-screen flex items-center justify-center">
+      <div class="bg-white p-10 rounded-xl shadow-2xl w-full max-w-md">
+        <div class="flex items-center space-x-3 pb-6 border-b border-gray-200 mb-6">
+          <i data-lucide="graduation-cap" class="w-8 h-8 header-on-primary"></i>
+          <h2 class="text-2xl font-bold" style="color:var(--primary-dark)">Student Login</h2>
+        </div>
+        <form onsubmit="handleStudentLogin(event)" class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium muted-small">Student ID</label>
+            <input type="text" id="student-login-id" value="233016112" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium muted-small">Password</label>
+            <input type="password" id="student-login-password" value="pass123" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 outline-none">
+          </div>
+          <button type="submit" class="w-full py-3 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-bold rounded-xl transition shadow-md">
+            Enter Student Panel
+          </button>
+        </form>
+        <p class="text-center text-xs muted-small mt-6">Credentials: 233016112 / pass123</p>
+        <button onclick="showApplication('chooser')" class="w-full mt-4 text-xs" style="color:var(--primary);">Change Portal</button>
+      </div>
+    </div>
+
+    <!-- STUDENT MAIN -->
+    <div id="student-main-content-view" class="hidden h-screen overflow-hidden flex flex-1">
+      <aside class="w-64 sidebar flex flex-col shadow-2xl z-20 shrink-0">
+        <div class="p-6 bg-[var(--primary-dark)] flex items-center gap-3 rounded-tl-xl rounded-tr-xl">
+          <div class="w-8 h-8 bg-white rounded-md flex items-center justify-center text-[var(--primary)] font-bold">L</div>
+          <h1 class="text-xl font-bold text-white tracking-wide">Library System</h1>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4 space-y-1 p-2">
+          <div class="student-sidebar-link active" onclick="switchStudentTab('dashboard', this)">
+            <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> <span>Dashboard</span>
+          </div>
+          <div class="student-sidebar-link" onclick="switchStudentTab('search', this)">
+            <i data-lucide="search" class="w-5 h-5 mr-3"></i> <span>Search Books</span>
+          </div>
+        </nav>
+        <div class="p-4 border-t" style="border-color:rgba(0,0,0,.06)">
+          <button onclick="handleLogout('student')" class="flex items-center justify-center w-full py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition shadow-lg">
+            <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Logout
+          </button>
+        </div>
+      </aside>
+
+      <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-8 z-10">
+          <h2 id="header-title" class="text-2xl font-bold">Dashboard</h2>
+          <div class="flex items-center gap-4">
+            <div class="text-right hidden sm:block">
+              <p class="font-semibold text-sm" id="student-header-name">Student</p>
+            </div>
+          </div>
+        </header>
+
+        <div id="main-container" class="flex-1 overflow-y-auto p-8">
+          <!-- STUDENT DASHBOARD -->
+          <div id="dashboard" class="student-content-section">
+            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4" style="border-color:var(--primary);">
+              <div><h3 class="text-xl font-bold">Welcome to the Library</h3><p class="text-gray-500 text-sm">Use the Search tab to view available books.</p></div>
+            </div>
+          </div>
+
+          <!-- STUDENT SEARCH -->
+          <div id="search" class="student-content-section hidden mt-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm mb-8">
+              <h3 class="font-bold mb-4">Library Catalog</h3>
+              <div id="student-book-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Books injected here via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
+  <script>
+    // --- Configuration ---
+    const API_URL = "http://localhost:3000/api";
+    let currentPanel = 'chooser';
+
+    // --- UTILITY ---
+    function showMessage(title, message, type){
+      const box = document.getElementById('message-box');
+      box.innerHTML = `<strong style="display:block">${title}</strong><span>${message}</span>`;
+      box.className = 'fixed top-5 right-5 p-4 rounded-lg shadow-xl text-white z-50 transition-transform duration-300 translate-x-0';
+      box.style.backgroundColor = (type==='success') ? '#2E7D32' : (type==='error') ? '#C62828' : '#1565C0';
+      setTimeout(()=>{ box.classList.remove('translate-x-0'); box.classList.add('translate-x-full'); }, 3000);
+    }
+
+    function showApplication(mode){
+      document.getElementById('chooser-view').classList.add('hidden');
+      document.getElementById('admin-application').classList.add('hidden');
+      document.getElementById('student-application').classList.add('hidden');
+      document.body.className = 'initial-mode flex justify-center items-center';
+      
+      if(mode==='admin'){
+        document.getElementById('admin-application').classList.remove('hidden');
+        document.getElementById('admin-login-view').classList.remove('hidden');
+        document.getElementById('admin-main-content-view').classList.add('hidden');
+        document.body.classList.remove('initial-mode','flex','justify-center','items-center');
+        document.body.classList.add('admin-login-mode','h-screen','flex','justify-center','items-center');
+      } else if(mode==='student'){
+        document.getElementById('student-application').classList.remove('hidden');
+        document.getElementById('student-login-view').classList.remove('hidden');
+        document.getElementById('student-main-content-view').classList.add('hidden');
+        document.body.classList.remove('initial-mode','flex','justify-center','items-center');
+        document.body.classList.add('student-mode','h-screen','flex','justify-center','items-center');
+      } else {
+        document.getElementById('chooser-view').classList.remove('hidden');
+        document.body.classList.add('initial-mode','flex','justify-center','items-center');
+      }
+      lucide.createIcons();
+    }
+
+    function handleLogout(panel){
+      showApplication('chooser');
+      showMessage('System', 'Logged out successfully.', 'info');
+    }
+
+    // --- ADMIN LOGIC ---
+
+    async function handleAdminLogin(event){
+      event.preventDefault();
+      const email = document.getElementById('admin-email').value;
+      const password = document.getElementById('admin-password').value;
+
+      try {
+        const response = await fetch(`${API_URL}/login/admin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const result = await response.json();
+
+        if(result.success){
+          document.getElementById('admin-login-view').classList.add('hidden');
+          document.getElementById('admin-main-content-view').classList.remove('hidden');
+          document.body.classList.remove('admin-login-mode','flex','justify-center','items-center');
+          document.body.classList.add('admin-dashboard-mode','flex');
+          document.getElementById('admin-header-name').innerText = result.user.name;
+          document.getElementById('admin-header-avatar').src='https://ui-avatars.com/api/?name='+result.user.name;
+          
+          // Initial Load
+          renderBookList();
+          refreshStats();
+          showMessage('Admin', 'Login successful.', 'success');
+        } else {
+          showMessage('Error', result.message, 'error');
+        }
+      } catch(err) {
+        console.error(err);
+        showMessage('Error', 'Cannot connect to backend server.', 'error');
+      }
+    }
+
+    function switchAdminTab(tabId, element){
+      document.querySelectorAll('.admin-content-section').forEach(s=>s.classList.add('hidden'));
+      document.getElementById(tabId+'-content').classList.remove('hidden');
+      document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.remove('active'));
+      element.classList.add('active');
+      lucide.createIcons();
+      
+      if(tabId==='book-management') renderBookList();
+      if(tabId==='member-management') {
+         switchAdminSubTab('member','view', document.querySelector('#member-management-tabs .tab-btn[data-subtab="view"]'));
+         renderMemberList();
+      }
+      if(tabId==='admin-dashboard') refreshStats();
+    }
+
+    function switchAdminSubTab(parent, subTabId, element){
+      document.querySelectorAll(`#${parent}-management-tabs .tab-btn`).forEach(btn=>{
+        btn.classList.remove('active'); btn.style.borderBottom='none'; btn.style.color='';
+      });
+      if(element){
+        element.classList.add('active');
+        element.style.borderBottom=`2px solid var(--primary)`;
+        element.style.color='var(--primary)';
+      }
+      document.querySelectorAll(`.${parent}-subtab-content`).forEach(c=>c.classList.add('hidden'));
+      document.getElementById(`${parent}-${subTabId}-tab`).classList.remove('hidden');
+    }
+
+    // --- BOOKS (Admin) ---
+
+    async function renderBookList(){
+      const container = document.getElementById('book-management-list');
+      container.innerHTML = '<p class="text-gray-500">Loading catalog...</p>';
+      
+      try {
+        const res = await fetch(`${API_URL}/books`);
+        const books = await res.json();
+        
+        if(!books || books.length === 0){
+           container.innerHTML = '<p class="text-gray-500">No books found.</p>';
+           return;
+        }
+
+        let html = `<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Title</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Author</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">ISBN</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Avail/Total</th>
+          <th class="px-6 py-3 text-right text-xs font-medium uppercase text-gray-500">Action</th>
+        </tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+
+        books.forEach(book => {
+          html += `<tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${book.title}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${book.author}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${book.isbn}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-700">
+               <span class="${book.available > 0 ? 'text-green-600' : 'text-red-600'}">${book.available}</span> / ${book.quantity}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button onclick="deleteBook(${book.id})" class="text-red-600 hover:text-red-900">Delete</button>
+            </td>
+          </tr>`;
+        });
+        html += `</tbody></table></div>`;
+        container.innerHTML = html;
+
+        // Update Dashboard Stats locally for simplicity
+        document.getElementById('total-books-stat').innerText = books.length;
+      } catch(e) {
+        container.innerHTML = '<p class="text-red-500">Failed to load books.</p>';
+      }
+    }
+
+    async function saveBook(event){
+      event.preventDefault();
+      const title = document.getElementById('book-title').value;
+      const author = document.getElementById('book-author').value;
+      const isbn = document.getElementById('book-isbn').value;
+      const quantity = parseInt(document.getElementById('book-quantity').value);
+
+      try {
+        const res = await fetch(`${API_URL}/books`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ title, author, isbn, quantity })
+        });
+        const result = await res.json();
+        if(result.success){
+          renderBookList();
+          document.getElementById('add-book-form').reset();
+          showMessage('Success', 'Book added successfully', 'success');
+        }
+      } catch(e){
+        showMessage('Error', 'Failed to add book', 'error');
+      }
+    }
+
+    async function deleteBook(id){
+      if(!confirm("Are you sure you want to delete this book?")) return;
+      try {
+        await fetch(`${API_URL}/books/delete`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id })
+        });
+        renderBookList();
+        showMessage('Info', 'Book deleted.', 'info');
+      } catch(e){
+        showMessage('Error', 'Failed to delete book', 'error');
+      }
+    }
+
+    async function refreshStats(){
+       // Fetch both lists simply to update counts
+       const bRes = await fetch(`${API_URL}/books`);
+       const books = await bRes.json();
+       document.getElementById('total-books-stat').innerText = books.length || 0;
+
+       const mRes = await fetch(`${API_URL}/members`);
+       const members = await mRes.json();
+       document.getElementById('total-members-stat').innerText = members.length || 0;
+    }
+
+    // --- MEMBERS (Admin) ---
+
+    async function renderMemberList(){
+      const container = document.getElementById('member-view-list');
+      container.innerHTML = 'Loading...';
+      try {
+        const res = await fetch(`${API_URL}/members`);
+        const members = await res.json();
+        
+        if(!members || members.length === 0){
+           container.innerHTML = '<p class="text-gray-500">No members found.</p>';
+           return;
+        }
+
+        let html = `<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">ID</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Name</th>
+          <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Email</th>
+        </tr></thead><tbody class="bg-white divide-y divide-gray-200">`;
+
+        members.forEach(m => {
+          html += `<tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${m.id}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${m.name}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${m.email}</td>
+          </tr>`;
+        });
+        html += `</tbody></table></div>`;
+        container.innerHTML = html;
+      } catch(e) {
+        container.innerHTML = '<p class="text-red-500">Failed to load members.</p>';
+      }
+    }
+
+    async function addMember(event){
+      event.preventDefault();
+      const name = document.getElementById('member-name').value;
+      const id = document.getElementById('member-id').value;
+      const email = document.getElementById('member-email').value;
+
+      try {
+        const res = await fetch(`${API_URL}/members`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ id, name, email })
+        });
+        const result = await res.json();
+        if(result.success){
+          renderMemberList();
+          document.getElementById('add-member-form').reset();
+          showMessage('Success', 'Member registered.', 'success');
+        } else {
+          showMessage('Error', result.message, 'error');
+        }
+      } catch(e){
+        showMessage('Error', 'Failed to add member', 'error');
+      }
+    }
+
+    async function handleIssueBook(){
+      const studentId = document.getElementById('issue-student-id').value;
+      const isbn = document.getElementById('issue-book-isbn').value;
+
+      try {
+        const res = await fetch(`${API_URL}/issue`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ studentId, isbn })
+        });
+        const result = await res.json();
+        
+        if(result.success){
+           showMessage('Success', result.message, 'success');
+           document.getElementById('issue-student-id').value = '';
+           document.getElementById('issue-book-isbn').value = '';
+        } else {
+           showMessage('Error', result.message, 'error');
+        }
+      } catch(e){
+        showMessage('Error', 'Failed to issue book', 'error');
+      }
+    }
+
+    // --- STUDENT LOGIC ---
+
+    async function handleStudentLogin(event){
+      event.preventDefault();
+      const id = document.getElementById('student-login-id').value;
+      const password = document.getElementById('student-login-password').value;
+
+      try {
+        const response = await fetch(`${API_URL}/login/student`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, password })
+        });
+        const result = await response.json();
+
+        if(result.success){
+          document.getElementById('student-login-view').classList.add('hidden');
+          document.getElementById('student-main-content-view').classList.remove('hidden');
+          document.body.classList.remove('initial-mode','flex','justify-center','items-center');
+          document.body.classList.add('student-mode','flex');
+          
+          document.getElementById('student-header-name').innerText = result.user.name;
+          switchStudentTab('dashboard');
+          showMessage('Student', 'Welcome back!', 'success');
+        } else {
+          showMessage('Error', result.message, 'error');
+        }
+      } catch(e){
+        showMessage('Error', 'Connection failed', 'error');
+      }
+    }
+
+    function switchStudentTab(tabId, element){
+      document.querySelectorAll('.student-content-section').forEach(s=>s.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      document.querySelectorAll('.student-sidebar-link').forEach(l=>l.classList.remove('active'));
+      if(element) element.classList.add('active');
+      
+      const titles = {'dashboard':'Dashboard','search':'Search Books'};
+      document.getElementById('header-title').innerText = titles[tabId] || 'Dashboard';
+      lucide.createIcons();
+
+      if(tabId === 'search') renderStudentBookList();
+    }
+
+    async function renderStudentBookList(){
+      const container = document.getElementById('student-book-list');
+      container.innerHTML = 'Loading...';
+      try {
+        const res = await fetch(`${API_URL}/books`);
+        const books = await res.json();
+        
+        let html = '';
+        books.forEach(book => {
+          html += `
+          <div class="bg-white rounded-xl shadow-sm border p-4">
+             <h3 class="font-bold text-lg">${book.title}</h3>
+             <p class="text-sm text-gray-500">${book.author}</p>
+             <p class="text-xs text-gray-400 mb-3">ISBN: ${book.isbn}</p>
+             <div class="flex justify-between items-center mt-2">
+               <span class="text-sm font-semibold ${book.available>0?'text-green-600':'text-red-600'}">
+                 ${book.available > 0 ? 'Available' : 'Out of Stock'}
+               </span>
+               <span class="text-xs bg-gray-100 px-2 py-1 rounded">${book.available}/${book.quantity} copies</span>
+             </div>
+          </div>`;
+        });
+        container.innerHTML = html || 'No books found.';
+      } catch(e){
+        container.innerHTML = 'Failed to load books.';
+      }
+    }
+
+    // Init
+    lucide.createIcons();
+  </script>
+</body>
+</html>
