@@ -37,7 +37,8 @@ A lightweight, fully functional Library Management System built with **Node.js**
 - **Frontend:** HTML5, Tailwind CSS (CDN), Vanilla JavaScript, Lucide Icons.
 - **Backend:** Node.js, Express.js.
 - **Database:** Local JSON file storage.
-- **Role	Username / ID	Password
+- Role	Username / ID	Password
 Admin	admin@lms.edu	123
+************************************
 Student	233016112	pass123
 *********************************************************************************************
