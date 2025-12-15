@@ -41,16 +41,3 @@ A lightweight, fully functional Library Management System built with **Node.js**
 Admin	admin@lms.edu	123
 Student	233016112	pass123
 *********************************************************************************************
-library-system/
-│
-├── data/                 # Auto-generated database files
-│   ├── admins.json
-│   ├── books.json
-│   ├── students.json
-│   └── issues.json
-│
-├── node_modules/         # Dependencies
-├── lms.html              # Main Frontend UI
-├── server.js             # Backend Logic & API Routes
-├── package.json          # Project configuration
-└── README.md             # Documentation
